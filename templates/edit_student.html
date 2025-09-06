@@ -1,0 +1,92 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="mb-3">Edit Student #{{ student.id }}</h3>
+        <form method="post">
+          <div class="row g-3">
+            <div class="mb-3">
+            <label class="form-label">Name</label>
+              <input type="text" class="form-control" name="name" value="{{ student.name }}" disabled>
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Age</label>
+              <input type="number" class="form-control" name="age" value="{{ student.age }}">
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Gender</label>
+              <select class="form-select" name="gender">
+                <option value="F" {% if student.gender=='F' %}selected{% endif %}>F</option>
+                <option value="M" {% if student.gender=='M' %}selected{% endif %}>M</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+            <label class="form-label">Marks</label>
+              <input type="number" step="0.01" min="0" max="100" class="form-control" name="marks" value="{{ student.marks }}">
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Previous Marks</label>
+              <input type="number" class="form-control" name="previous_marks" value="{{ student.previous_marks }}">
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Attendance (%)</label>
+              <input type="number" step="0.01" min="0" max="100" class="form-control" name="attendance" value="{{ student.attendance }}">
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Attendance % (for model)</label>
+              <input type="number" class="form-control" name="attendance_percent" value="{{ student.attendance_percent or student.attendance }}">
+            </div>
+
+            <div class="mb-3">
+            <label class="form-label">Study hours / week</label>
+              <input type="number" class="form-control" name="study_hours_per_week" value="{{ student.study_hours_per_week }}">
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Parental Education</label>
+              <select class="form-select" name="parental_education">
+                <option {% if student.parental_education=='Primary' %}selected{% endif %}>Primary</option>
+                <option {% if student.parental_education=='HighSchool' %}selected{% endif %}>HighSchool</option>
+                <option {% if student.parental_education=='Graduate' %}selected{% endif %}>Graduate</option>
+                <option {% if student.parental_education=='PostGrad' %}selected{% endif %}>PostGrad</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+            <label class="form-label">Family Income</label>
+              <input type="number" class="form-control" name="family_income" value="{{ student.family_income }}">
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Internet Access</label>
+              <select class="form-select" name="internet_access">
+                <option {% if student.internet_access=='Yes' %}selected{% endif %}>Yes</option>
+                <option {% if student.internet_access=='No' %}selected{% endif %}>No</option>
+              </select>
+            </div>
+            <div class="mb-3">
+            <label class="form-label">Extra Classes</label>
+              <select class="form-select" name="extra_classes">
+                <option {% if student.extra_classes=='No' %}selected{% endif %}>No</option>
+                <option {% if student.extra_classes=='Yes' %}selected{% endif %}>Yes</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+            <label class="form-label">Assignment Score</label>
+              <input type="number" step="0.01" min="0" max="100" class="form-control" name="assignment_score" value="{{ student.assignment_score }}">
+            </div>
+
+          </div>
+          <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary">Save Changes</button>
+            <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Back</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

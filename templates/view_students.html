@@ -1,0 +1,51 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="mb-3">Students of {{ teacher.name }} (ID: {{ teacher.id }})</h3>
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Gender</th>
+          <th>Age</th>
+          <th>Marks</th>
+          <th>Prev Marks</th>
+          <th>Attendance %</th>
+          <th>Hours/Wk</th>
+          <th>Parent Edu</th>
+          <th>Income</th>
+          <th>Internet</th>
+          <th>Extra</th>
+          <th>Assignment</th>
+          <th>Prediction</th>
+          <th>Prob</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>{{ s.id }}</td>
+          <td>{{ s.name }}</td>
+          <td>{{ s.gender or '' }}</td>
+          <td>{{ s.age or '' }}</td>
+          <td>{{ s.marks or '' }}</td>
+          <td>{{ s.previous_marks or '' }}</td>
+          <td>{{ s.attendance_percent or s.attendance or '' }}</td>
+          <td>{{ s.study_hours_per_week or '' }}</td>
+          <td>{{ s.parental_education or '' }}</td>
+          <td>{{ s.family_income or '' }}</td>
+          <td>{{ s.internet_access or '' }}</td>
+          <td>{{ s.extra_classes or '' }}</td>
+          <td>{{ s.assignment_score or '' }}</td>
+          <td>{{ s.prediction or '' }}</td>
+          <td>{{ (s.probability*100)|round(1) if s.probability is not none else '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

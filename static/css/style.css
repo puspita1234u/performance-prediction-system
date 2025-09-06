@@ -1,0 +1,5 @@
+body { background-color: #f8f9fa; }
+.navbar-brand { font-weight: 700; }
+.table td, .table th { vertical-align: middle; }
+.card { border-radius: 1rem; }
+.btn-rounded { border-radius: 9999px; }
