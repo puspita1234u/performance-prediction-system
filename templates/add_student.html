@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Add Student</h3>
+    <form method="POST">
+        <div class="row g-3">
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Age</label>
+                <input type="number" class="form-control" name="age">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Assignment Score</label>
+                <input type="number" step="0.01" class="form-control" name="assignment_score">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Gender</label>
+                <select class="form-select" name="gender">
+                    <option value="">Select</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Previous Marks</label>
+                <input type="number" class="form-control" name="previous_marks">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Attendance %</label>
+                <input type="number" class="form-control" name="attendance_percent">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Study Hours/Week</label>
+                <input type="number" class="form-control" name="study_hours_per_week">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Parental Education</label>
+                <select class="form-select" name="parental_education">
+                    <option>Primary</option>
+                    <option>HighSchool</option>
+                    <option>Graduate</option>
+                    <option>PostGrad</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Family Income</label>
+                <input type="number" class="form-control" name="family_income">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Internet Access</label>
+                <select class="form-select" name="internet_access">
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Extra Classes</label>
+                <select class="form-select" name="extra_classes">
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success">Add Student</button>
+        <a href="{{ url_for('teacher_students') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+
+</div>
+{% endblock %}

@@ -26,8 +26,17 @@
             <li class="nav-item"><span class="navbar-text me-3">Hi, Admin</span></li>
             <li class="nav-item"><a href="{{ url_for('admin_logout') }}">Logout</a></li>
             {% elif session.get('teacher_id') %}
-              <li class="nav-item"><span class="navbar-text me-3">Hi, {{ session.get('teacher_name') }}</span></li>
-              <li class="nav-item"><a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="teacherMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Hi, {{ session.get('teacher_name') }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="teacherMenu">
+                <li><a class="dropdown-item" href="{{ url_for('teacher_account') }}">My Account</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('teacher_students') }}">My Students</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+              </ul>
+            </li>
             {% else %}
               <li class="nav-item"><a class="btn btn-outline-light btn-sm me-2" href="{{ url_for('login') }}">Login</a></li>
               <li class="nav-item"><a class="btn btn-warning btn-sm" href="{{ url_for('signup') }}">Sign up</a></li>

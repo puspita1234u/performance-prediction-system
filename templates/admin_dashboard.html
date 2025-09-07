@@ -9,20 +9,49 @@
           <th>ID</th>
           <th>Name</th>
           <th>Email</th>
-          <th>Action</th>
+          <th>Total Students</th>
+          <th>Pass</th>
+          <th>Fail</th>
+          <th>Avg Confidence</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        {% for t in teachers %}
-        <tr>
-          <td>{{ t.id }}</td>
-          <td>{{ t.name }}</td>
-          <td>{{ t.email }}</td>
-          <td>
-            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_view_students', teacher_id=t.id) }}">View Students</a>
-          </td>
-        </tr>
-        {% endfor %}
+      {% for row in teacher_data %}
+      <tr>
+        <td>{{ row.teacher.id }}</td>
+        <td>{{ row.teacher.name }}</td>
+        <td>{{ row.teacher.email }}</td>
+        <td>{{ row.total }}</td>
+        <td class="text-success">{{ row.passes }}</td>
+        <td class="text-danger">{{ row.fails }}</td>
+        <td>{{ (row.avg_prob*100)|round(1) }}%</td>
+        <td>
+          <div class="btn-group">
+            <a href="{{ url_for('admin_view_students', teacher_id=row.teacher.id) }}" class="btn btn-sm btn-primary">
+              View Students
+            </a>
+            <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split"
+                    data-bs-toggle="dropdown"></button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="{{ url_for('admin_edit_teacher', teacher_id=row.teacher.id) }}" class="dropdown-item text-secondary">
+                  Edit Teacher
+                </a>
+              </li>
+              <li>
+                <form action="{{ url_for('admin_delete_teacher', teacher_id=row.teacher.id) }}" method="POST" style="display:inline;">
+                  <button type="submit" class="dropdown-item text-danger"
+                          onclick="return confirm('Are you sure you want to delete this teacher? This will also remove all their students.');">
+                    Delete Teacher
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
       </tbody>
     </table>
   </div>

@@ -200,7 +200,7 @@ def dashboard():
         avg_prob_fail=avg_prob_fail
     )
 
-@app.route("/students/add_student", methods=["POST"])
+@app.route("/students/add_student", methods=["GET", "POST"])
 def add_student():
     # Ensure teacher is logged in
     teacher_check = require_teacher()
@@ -212,45 +212,48 @@ def add_student():
         flash("Unable to determine teacher. Please log in again.", "danger")
         return redirect(url_for("login"))
 
-    # Extract form fields
-    name = request.form.get("name", "").strip()
-    age = request.form.get("age") or None
-    assignment_score = request.form.get("assignment_score") or None
-    gender = request.form.get("gender") or None
-    previous_marks = request.form.get("previous_marks") or None
-    attendance_percent = request.form.get("attendance_percent") or None
-    study_hours_per_week = request.form.get("study_hours_per_week") or None
-    parental_education = request.form.get("parental_education") or None
-    family_income = request.form.get("family_income") or None
-    internet_access = request.form.get("internet_access") or None
-    extra_classes = request.form.get("extra_classes") or None
+    if request.method == "POST":
+        # Extract form fields
+        name = request.form.get("name", "").strip()
+        age = request.form.get("age") or None
+        assignment_score = request.form.get("assignment_score") or None
+        gender = request.form.get("gender") or None
+        previous_marks = request.form.get("previous_marks") or None
+        attendance_percent = request.form.get("attendance_percent") or None
+        study_hours_per_week = request.form.get("study_hours_per_week") or None
+        parental_education = request.form.get("parental_education") or None
+        family_income = request.form.get("family_income") or None
+        internet_access = request.form.get("internet_access") or None
+        extra_classes = request.form.get("extra_classes") or None
 
-    if not name:
-        flash("Student name is required.", "danger")
-        return redirect(url_for("dashboard"))
+        if not name:
+            flash("Student name is required.", "danger")
+            return redirect(url_for("add_student"))
 
-    # Create new student linked to teacher
-    s = Student(
-        teacher_id=tid,  # <-- Link the student to the teacher
-        name=name,
-        age=int(age) if age else None,
-        assignment_score=float(assignment_score) if assignment_score else None,
-        gender=gender,
-        previous_marks=int(previous_marks) if previous_marks else None,
-        attendance_percent=int(attendance_percent) if attendance_percent else (
-            int(attendance) if attendance else None
-        ),
-        study_hours_per_week=int(study_hours_per_week) if study_hours_per_week else None,
-        parental_education=parental_education,
-        family_income=int(family_income) if family_income else None,
-        internet_access=internet_access,
-        extra_classes=extra_classes
-    )
+        # Create new student linked to teacher
+        s = Student(
+            teacher_id=tid,
+            name=name,
+            age=int(age) if age else None,
+            assignment_score=float(assignment_score) if assignment_score else None,
+            gender=gender,
+            previous_marks=int(previous_marks) if previous_marks else None,
+            attendance_percent=int(attendance_percent) if attendance_percent else None,
+            study_hours_per_week=int(study_hours_per_week) if study_hours_per_week else None,
+            parental_education=parental_education,
+            family_income=int(family_income) if family_income else None,
+            internet_access=internet_access,
+            extra_classes=extra_classes
+        )
 
-    db.session.add(s)
-    db.session.commit()
-    flash("Student added successfully.", "success")
-    return redirect(url_for("dashboard"))
+        db.session.add(s)
+        db.session.commit()
+        flash("Student added successfully.", "success")
+        return redirect(url_for("teacher_students"))   # ⬅️ redirect to My Students
+
+    # GET → render form
+    return render_template("add_student.html")
+
 
 
 @app.route("/students/<int:student_id>/edit", methods=["GET", "POST"])
@@ -327,8 +330,27 @@ def admin_logout():
 def admin_dashboard():
     if not is_admin():
         return redirect(url_for("admin_login"))
+
     teachers = Teacher.query.order_by(Teacher.id.desc()).all()
-    return render_template("admin_dashboard.html", teachers=teachers)
+    teacher_data = []
+
+    for t in teachers:
+        students = Student.query.filter_by(teacher_id=t.id).all()
+        total = len(students)
+        passes = sum(1 for s in students if s.prediction == "Pass")
+        fails = sum(1 for s in students if s.prediction == "Fail")
+        avg_prob = round(sum(s.probability for s in students if s.probability) / total, 2) if total else 0
+
+        teacher_data.append({
+            "teacher": t,
+            "total": total,
+            "passes": passes,
+            "fails": fails,
+            "avg_prob": avg_prob
+        })
+
+    return render_template("admin_dashboard.html", teacher_data=teacher_data)
+
 
 @app.route("/admin/teachers/<int:teacher_id>")
 def admin_view_students(teacher_id):
@@ -407,6 +429,87 @@ def delete_student(student_id):
     db.session.commit()
     flash("Student deleted successfully.", "info")
     return redirect(url_for("dashboard"))
+
+@app.route("/teacher/account", methods=["GET", "POST"])
+def teacher_account():
+    if require_teacher():
+        return require_teacher()
+
+    teacher = Teacher.query.get_or_404(current_teacher_id())
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
+
+        if not name or not email:
+            flash("Name and email are required.", "danger")
+            return redirect(url_for("teacher_account"))
+
+        teacher.name = name
+        teacher.email = email
+        if password:  # only update if filled
+            teacher.password = generate_password_hash(password)
+
+        db.session.commit()
+        flash("Account updated successfully.", "success")
+        return redirect(url_for("teacher_account"))
+
+    return render_template("teacher_account.html", teacher=teacher)
+
+
+@app.route("/teacher/students")
+def teacher_students():
+    if require_teacher():
+        return require_teacher()
+
+    tid = current_teacher_id()
+    students = Student.query.filter_by(teacher_id=tid).order_by(Student.id.desc()).all()
+    return render_template("teacher_students.html", students=students)
+
+@app.route("/admin/teachers/<int:teacher_id>/edit", methods=["GET", "POST"])
+def admin_edit_teacher(teacher_id):
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+
+    teacher = Teacher.query.get_or_404(teacher_id)
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
+
+        if not name or not email:
+            flash("Name and email are required.", "danger")
+            return redirect(url_for("admin_edit_teacher", teacher_id=teacher_id))
+
+        teacher.name = name
+        teacher.email = email
+        if password:  # update password only if provided
+            teacher.password = generate_password_hash(password)
+
+        db.session.commit()
+        flash("Teacher updated successfully.", "success")
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin_edit_teacher.html", teacher=teacher)
+
+
+@app.route("/admin/teachers/<int:teacher_id>/delete", methods=["POST"])
+def admin_delete_teacher(teacher_id):
+    if not is_admin():
+        return redirect(url_for("admin_login"))
+
+    teacher = Teacher.query.get_or_404(teacher_id)
+
+    # Also delete the teacher’s students to maintain consistency
+    Student.query.filter_by(teacher_id=teacher.id).delete()
+
+    db.session.delete(teacher)
+    db.session.commit()
+
+    flash("Teacher and their students deleted successfully.", "info")
+    return redirect(url_for("admin_dashboard"))
 
 
 
