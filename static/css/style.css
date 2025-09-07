@@ -1,5 +1,31 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
 body { background-color: #f8f9fa; }
 .navbar-brand { font-weight: 700; }
 .table td, .table th { vertical-align: middle; }
 .card { border-radius: 1rem; }
 .btn-rounded { border-radius: 9999px; }
+.index-background {
+    background: url("/static/images/homepage-bg.png") no-repeat center center;
+    background-size: cover;      /* scales image to cover entire area */
+    position: relative;
+    height: 100vh;  /* take full viewport height */
+    width: 100%;   /* take full viewport width */
+}
+
+.text-shadow {
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
+}
+
+.overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+}

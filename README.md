@@ -22,21 +22,28 @@ Flask + MySQL web app for managing students by **Teachers**, predicting pass/fai
 ```bash
 python -m venv venv
 # Windows
-venv\Scripts\activate
+source venv/Scripts/activate
 # Linux/Mac
 # source venv/bin/activate
 
 pip install -r requirements.txt
 ```
 
-2. **Configure environment**
+2. **Train your model**
+```bash
+python train_model.py
+```
+- Your scikit-learn model would be saved to `models/student_model.joblib`.
+
+
+3. **Configure environment**
 - Copy `.env.example` to `.env` and update values (SECRET_KEY, DATABASE_URL).
 - Example MySQL URL:
 ```
 DATABASE_URL=mysql+pymysql://<db_user>:<db_pass>@localhost:3306/studentsdb
 ```
 
-3. **Create DB tables**
+4. **Create DB tables**
 ```bash
 # Option A: via Flask CLI
 python app.py  # first run auto-creates tables
@@ -44,22 +51,17 @@ python app.py  # first run auto-creates tables
 flask --app app.py init-db
 ```
 
-4. **Create Admin**
+5. **Create Admin**
 ```bash
 flask --app app.py create-admin
 # uses ADMIN_USERNAME and ADMIN_PASSWORD from .env (defaults: admin / admin123)
 ```
 
-5. **Run**
+6. **Run**
 ```bash
 python app.py
-# open http://localhost:5000
+# open http://127.0.0.1:5000
 ```
-
-6. **(Optional) Add ML model**
-- Save your scikit-learn model to `models/student_model.joblib`.
-- Expected features (order): `marks`, `attendance`, `assignment_score`.
-- If `predict_proba` exists, the positive class probability is used (x100). If not, regression output is clamped to 0..100.
 
 ## Notes
 - For production, change SECRET_KEY and disable debug.

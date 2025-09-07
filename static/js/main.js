@@ -81,6 +81,21 @@ async function predictAll() {
   }
 }
 
+function autoFadeAlerts(timeout = 2000) {
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(alert => {
+      // Only auto-fade success & info alerts
+      if (alert.classList.contains('alert-success') || alert.classList.contains('alert-info')) {
+        alert.classList.remove('show');  // Bootstrap fade out
+        setTimeout(() => { alert.remove(); }, 300);
+      }
+    });
+  }, timeout);
+}
+
+// Run on page load
+window.addEventListener("load", () => autoFadeAlerts(2000));
+
 // Simple table sort/search/filter
 (function () {
   const table = document.querySelector('table.table');

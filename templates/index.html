@@ -1,27 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row align-items-center">
-  <div class="col-md-6">
-    <h1 class="display-6 fw-bold">Student Performance Portal</h1>
-    <p class="lead">Enter student details and predict performance. Teachers can manage their students after login.</p>
-    <div class="d-flex gap-2">
-      <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg btn-rounded">Teacher Login</a>
-      <a href="{{ url_for('signup') }}" class="btn btn-outline-primary btn-lg btn-rounded">Teacher Sign up</a>
-      <a href="{{ url_for('admin_login') }}" class="btn btn-outline-secondary btn-lg btn-rounded">Admin</a>
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="card shadow-sm mt-4 mt-md-0">
-      <div class="card-body">
-        <h5 class="card-title">How it works</h5>
-        <ol class="mb-0">
-          <li>Teacher signs up & logs in</li>
-          <li>Add students (age, marks, attendance, assignment score)</li>
-          <li>Click <strong>Predict</strong> to see Pass/Fail with percentage</li>
-          <li>Edit by clicking the <strong>Student ID</strong> link</li>
-        </ol>
+<div class="index-background d-flex align-items-center">
+  <div class="container text-black">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h1 class="display-6 fw-bold">Student Performance Prediction Portal</h1>
+        <p class="lead">Enter student details and predict performance. Teachers can manage their students after login.</p>
+      </div>
+      <div class="col-md-6">
+        <div class="card shadow-sm mt-4 mt-md-0 bg-light text-dark">
+          <div class="card-body">
+            <h5 class="card-title">How it works</h5>
+            <ol class="mb-0">
+              <li>Teacher signs up & logs in</li>
+              <li>Add students (age, marks, attendance, assignment score, etc...)</li>
+              <li>Click <strong>Predict</strong> to see Pass/Fail with percentage</li>
+              <li>Edit by clicking the <strong>Student ID</strong> link</li>
+              <li>Click <strong>Predict All</strong> to see Pass/Fail percentage for all students</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
 </div>
 {% endblock %}
