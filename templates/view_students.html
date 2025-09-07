@@ -11,17 +11,16 @@
           <th>Name</th>
           <th>Gender</th>
           <th>Age</th>
-          <th>Marks</th>
-          <th>Prev Marks</th>
+          <th>Previous Marks</th>
           <th>Attendance %</th>
-          <th>Hours/Wk</th>
-          <th>Parent Edu</th>
-          <th>Income</th>
-          <th>Internet</th>
-          <th>Extra</th>
-          <th>Assignment</th>
+          <th>Study Hours/Wk</th>
+          <th>Parent's Education</th>
+          <th>Family Income</th>
+          <th>Internet Access</th>
+          <th>Extra Classes</th>
+          <th>Assignment Score</th>
           <th>Prediction</th>
-          <th>Prob</th>
+          <th>Probability</th>
         </tr>
       </thead>
       <tbody>
@@ -31,7 +30,6 @@
           <td>{{ s.name }}</td>
           <td>{{ s.gender or '' }}</td>
           <td>{{ s.age or '' }}</td>
-          <td>{{ s.marks or '' }}</td>
           <td>{{ s.previous_marks or '' }}</td>
           <td>{{ s.attendance_percent or s.attendance or '' }}</td>
           <td>{{ s.study_hours_per_week or '' }}</td>

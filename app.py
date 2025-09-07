@@ -59,11 +59,8 @@ class Student(db.Model):
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Integer)
-    marks = db.Column(db.Float)
-    attendance = db.Column(db.Float)
     assignment_score = db.Column(db.Float)
     prediction = db.Column(db.String(50))
-
     gender = db.Column(db.String(1))
     previous_marks = db.Column(db.Integer)
     attendance_percent = db.Column(db.Integer)
@@ -182,7 +179,7 @@ def dashboard():
     students = Student.query.filter_by(teacher_id=tid).order_by(Student.id.desc()).all()
     # Provide data for chart
     chart_labels = [s.name for s in students]
-    chart_marks = [s.marks or 0 for s in students]
+    chart_marks = [s.previous_marks or 0 for s in students]
     return render_template("dashboard.html", students=students, chart_labels=chart_labels, chart_marks=chart_marks)
 
 @app.route("/students/add_student", methods=["POST"])
@@ -200,11 +197,7 @@ def add_student():
     # Extract form fields
     name = request.form.get("name", "").strip()
     age = request.form.get("age") or None
-    marks = request.form.get("marks") or None
-    attendance = request.form.get("attendance") or None
     assignment_score = request.form.get("assignment_score") or None
-
-    # Additional fields
     gender = request.form.get("gender") or None
     previous_marks = request.form.get("previous_marks") or None
     attendance_percent = request.form.get("attendance_percent") or None
@@ -223,8 +216,6 @@ def add_student():
         teacher_id=tid,  # <-- Link the student to the teacher
         name=name,
         age=int(age) if age else None,
-        marks=float(marks) if marks else None,
-        attendance=float(attendance) if attendance else None,
         assignment_score=float(assignment_score) if assignment_score else None,
         gender=gender,
         previous_marks=int(previous_marks) if previous_marks else None,
@@ -255,11 +246,7 @@ def edit_student(student_id):
         return redirect(url_for("dashboard"))
     if request.method == "POST":
         s.age = int(request.form.get("age") or 0) or None
-        s.marks = float(request.form.get("marks") or 0) or None
-        s.attendance = float(request.form.get("attendance") or 0) or None
         s.assignment_score = float(request.form.get("assignment_score") or 0) or None
-
-        # new fields
         s.gender = request.form.get("gender") or s.gender
         s.previous_marks = int(request.form.get("previous_marks") or 0) or s.previous_marks
         s.attendance_percent = int(request.form.get("attendance_percent") or 0) or s.attendance_percent

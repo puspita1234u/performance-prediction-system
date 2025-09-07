@@ -27,20 +27,11 @@
             </select>
           </div>
           <div class="mb-3">
-          <label class="form-label">Marks</label>
-            <input type="number" class="form-control" name="marks" step="0.01" min="0" max="100">
-          </div>
-
-          <div class="mb-3">
           <label class="form-label">Previous Marks</label>
             <input type="number" class="form-control" name="previous_marks" min="0" max="100">
           </div>
           <div class="mb-3">
-          <label class="form-label">Attendance (%)</label>
-            <input type="number" class="form-control" name="attendance" step="0.01" min="0" max="100">
-          </div>
-          <div class="mb-3">
-          <label class="form-label">Attendance % (for model)</label>
+          <label class="form-label">Attendance %</label>
             <input type="number" class="form-control" name="attendance_percent" step="0.01" min="0" max="100">
           </div>
           <div class="mb-3">
@@ -105,17 +96,16 @@
             <th data-sort="name">Name</th>
             <th data-sort="gender">Gender</th>
             <th data-sort="age">Age</th>
-            <th data-sort="marks">Marks</th>
-            <th data-sort="previous_marks">Prev Marks</th>
-            <th data-sort="attendance_percent">Attend %</th>
-            <th data-sort="study_hours_per_week">Hours/Wk</th>
-            <th data-sort="parental_education">Parent Edu</th>
-            <th data-sort="family_income">Income</th>
-            <th data-sort="internet_access">Internet</th>
-            <th data-sort="extra_classes">Extra</th>
-            <th data-sort="assignment">Assignment</th>
+            <th data-sort="previous_marks">Previous Marks</th>
+            <th data-sort="attendance_percent">Attendance %</th>
+            <th data-sort="study_hours_per_week">Study Hours/Wk</th>
+            <th data-sort="parental_education">Parent's Education</th>
+            <th data-sort="family_income">Family Income</th>
+            <th data-sort="internet_access">Internet Access</th>
+            <th data-sort="extra_classes">Extra Classes</th>
+            <th data-sort="assignment">Assignment Score</th>
             <th data-sort="prediction">Prediction</th>
-            <th data-sort="probability">Prob</th>
+            <th data-sort="probability">Probability</th>
             <th data-sort="action">Action</th>
           </tr>
         </thead>
@@ -126,7 +116,6 @@
             <td>{{ s.name }}</td>
             <td>{{ s.gender or '' }}</td>
             <td>{{ s.age or '' }}</td>
-            <td>{{ s.marks or '' }}</td>
             <td>{{ s.previous_marks or '' }}</td>
             <td>{{ s.attendance_percent or s.attendance or '' }}</td>
             <td>{{ s.study_hours_per_week or '' }}</td>
