@@ -1,9 +1,11 @@
 import os
+import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from joblib import load as joblib_load
+
 
 load_dotenv()
 
@@ -16,14 +18,43 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
+MODEL = None
+# Update feature list to match your actual schema
+FEATURE_COLUMNS = [
+    "age",
+    "previous_marks",
+    "attendance_percent",
+    "study_hours_per_week",
+    "family_income",
+    "assignment_score",
+    "gender",
+    "parental_education",
+    "internet_access",
+    "extra_classes"
+]
+
+MODEL_PATH = os.path.join("models", "student_model.joblib")
+
+try:
+    if os.path.exists(MODEL_PATH):
+        MODEL = joblib_load(MODEL_PATH)
+        print(f"ML model loaded successfully from {MODEL_PATH}")
+    else:
+        print(f"ML model not found at {MODEL_PATH}. Using fallback prediction.")
+except Exception as e:
+    MODEL = None
+    print(f"Failed to load ML model: {e}")
+
 # ---------------- Models ----------------
 class Teacher(db.Model):
+    __tablename__ = 'teacher'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
 
 class Student(db.Model):
+    __tablename__ = 'student_record'
     id = db.Column(db.Integer, primary_key=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
@@ -43,6 +74,8 @@ class Student(db.Model):
     extra_classes = db.Column(db.String(3))
     probability = db.Column(db.Float)
 
+    teacher = db.relationship('Teacher', backref=db.backref('students', lazy=True))
+
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -60,13 +93,38 @@ def require_teacher():
 def is_admin():
     return session.get("admin", False)
 
-# Try to load ML model (optional). If missing, fallback to a simple rule.
-MODEL = None
-MODEL_FEATURES = ["marks", "attendance", "assignment_score"]
-try:
-    MODEL = joblib_load(os.path.join("models", "student_model.joblib"))
-except Exception:
-    MODEL = None
+def predict_student_performance(student):
+    """
+    Predict performance for a single student using the trained ML model.
+    Falls back gracefully if model is missing or fields are incomplete.
+    """
+    if MODEL is None:
+        print("MODEL is not loaded. Using fallback prediction.")
+        return "Fail", 0.0
+
+    # Build feature dictionary in the exact order as training
+    sample = {
+        "age": student.age,
+        "previous_marks": student.previous_marks,
+        "attendance_percent": student.attendance_percent,
+        "study_hours_per_week": student.study_hours_per_week,
+        "family_income": student.family_income,
+        "assignment_score": student.assignment_score,
+        "gender": student.gender,
+        "parental_education": student.parental_education,
+        "internet_access": student.internet_access,
+        "extra_classes": student.extra_classes,
+    }
+
+    try:
+        df = pd.DataFrame([sample], columns=FEATURE_COLUMNS)
+        y_pred = MODEL.predict(df)[0]
+        prob = MODEL.predict_proba(df)[0].max()
+        label = "Pass" if int(y_pred) == 1 else "Fail"
+        return label, float(prob)
+    except Exception as e:
+        print(f"Prediction failed for student {student.id}: {e}")
+        return "Fail", 0.0
 
 # ---------------- Routes ----------------
 @app.route("/")
@@ -127,18 +185,26 @@ def dashboard():
     chart_marks = [s.marks or 0 for s in students]
     return render_template("dashboard.html", students=students, chart_labels=chart_labels, chart_marks=chart_marks)
 
-@app.route("/students/add", methods=["POST"])
+@app.route("/students/add_student", methods=["POST"])
 def add_student():
-    if require_teacher():
-        return require_teacher()
+    # Ensure teacher is logged in
+    teacher_check = require_teacher()
+    if teacher_check:
+        return teacher_check
+
     tid = current_teacher_id()
-    name = request.form.get("name","").strip()
+    if not tid:
+        flash("Unable to determine teacher. Please log in again.", "danger")
+        return redirect(url_for("login"))
+
+    # Extract form fields
+    name = request.form.get("name", "").strip()
     age = request.form.get("age") or None
     marks = request.form.get("marks") or None
     attendance = request.form.get("attendance") or None
     assignment_score = request.form.get("assignment_score") or None
 
-    # new fields
+    # Additional fields
     gender = request.form.get("gender") or None
     previous_marks = request.form.get("previous_marks") or None
     attendance_percent = request.form.get("attendance_percent") or None
@@ -151,8 +217,10 @@ def add_student():
     if not name:
         flash("Student name is required.", "danger")
         return redirect(url_for("dashboard"))
+
+    # Create new student linked to teacher
     s = Student(
-        teacher_id=tid,
+        teacher_id=tid,  # <-- Link the student to the teacher
         name=name,
         age=int(age) if age else None,
         marks=float(marks) if marks else None,
@@ -160,17 +228,21 @@ def add_student():
         assignment_score=float(assignment_score) if assignment_score else None,
         gender=gender,
         previous_marks=int(previous_marks) if previous_marks else None,
-        attendance_percent=int(attendance_percent) if attendance_percent else (int(attendance) if attendance else None),
+        attendance_percent=int(attendance_percent) if attendance_percent else (
+            int(attendance) if attendance else None
+        ),
         study_hours_per_week=int(study_hours_per_week) if study_hours_per_week else None,
         parental_education=parental_education,
         family_income=int(family_income) if family_income else None,
         internet_access=internet_access,
         extra_classes=extra_classes
     )
+
     db.session.add(s)
     db.session.commit()
-    flash("Student added.", "success")
+    flash("Student added successfully.", "success")
     return redirect(url_for("dashboard"))
+
 
 @app.route("/students/<int:student_id>/edit", methods=["GET", "POST"])
 def edit_student(student_id):
@@ -204,7 +276,7 @@ def edit_student(student_id):
 
 # Example predict route — adapt to your actual route name/path
 @app.route("/students/<int:student_id>/predict", methods=["POST"])
-def predict(student_id):
+def predict_student(student_id):
     if "teacher_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -212,40 +284,16 @@ def predict(student_id):
     if s.teacher_id != session["teacher_id"]:
         return jsonify({"error": "Forbidden"}), 403
 
-    # Build features (adjust to your model)
-    sample = {
-        "gender": (s.gender or "F"),
-        "age": int(s.age or 0),
-        "previous_marks": int(s.previous_marks or s.marks or 0),
-        "attendance_percent": int(s.attendance_percent or s.attendance or 0),
-        "study_hours_per_week": int(s.study_hours_per_week or 0),
-        "parental_education": (s.parental_education or "HighSchool"),
-        "family_income": int(s.family_income or 0),
-        "internet_access": (s.internet_access or "Yes"),
-        "extra_classes": (s.extra_classes or "No"),
-        "assignment_score": int(s.assignment_score or 0),
-    }
-
-    label = "Fail"
-    prob = 0.0
-    try:
-        import pandas as pd
-        df = pd.DataFrame([sample])
-        pred = MODEL.predict(df)[0]
-        label = "Pass" if int(pred) == 1 else "Fail"
-        if hasattr(MODEL, "predict_proba"):
-            prob = float(MODEL.predict_proba(df)[:, 1][0])  # 0..1
-    except Exception:
-        # simple heuristic fallback
-        score = sample["previous_marks"]*0.6 + sample["attendance_percent"]*0.3 + sample["study_hours_per_week"]*0.1
-        prob = min(1.0, max(0.0, score/100.0))
-        label = "Pass" if prob >= 0.5 else "Fail"
-
-    s.prediction = label              # <-- plain Pass/Fail
-    s.probability = float(prob)       # <-- 0..1
+    label, prob = predict_student_performance(s)
+    s.prediction = label
+    s.probability = prob
     db.session.commit()
 
-    return jsonify({"prediction": s.prediction, "probability": s.probability})
+    return jsonify({
+        "id": s.id,
+        "prediction": label,
+        "probability": prob
+    })
 
 
 # --------- Admin ---------
@@ -306,6 +354,37 @@ def api_stats():
         })
 
     return jsonify({"total": 0, "passes": 0, "fails": 0, "avg_prob_pass": 0, "avg_prob_fail": 0})
+
+@app.route("/students/predict_all", methods=["POST"])
+def predict_all():
+    if "teacher_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    tid = session["teacher_id"]
+    print(f"PredictAll triggered for teacher_id: {tid}")
+
+    students = Student.query.filter_by(teacher_id=tid).all()
+    print(f"Found {len(students)} students for prediction")
+
+    if not students:
+        return jsonify({"updated": 0, "students": []})
+
+    updated_students = []
+    count = 0
+
+    for s in students:
+        label, prob = predict_student_performance(s)
+        s.prediction = label
+        s.probability = prob
+        updated_students.append({
+            "id": s.id,
+            "prediction": label,
+            "probability": round(prob * 100, 1)
+        })
+        count += 1
+
+    db.session.commit()
+    return jsonify({"updated": count, "students": updated_students})
 
 
 # --------- CLI helpers ---------

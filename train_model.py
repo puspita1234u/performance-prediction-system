@@ -15,7 +15,7 @@ MODEL_PATH = os.path.join(MODEL_DIR, "student_model.joblib")
 os.makedirs(MODEL_DIR, exist_ok=True)
 df = pd.read_csv(DATA_PATH)
 
-numeric_features = ["age","previous_marks","attendance_percent","study_hours_per_week","family_income"]
+numeric_features = ["age","previous_marks","attendance_percent","study_hours_per_week","family_income", "assignment_score"]
 categorical_features = ["gender","parental_education","internet_access","extra_classes"]
 
 X = df[numeric_features + categorical_features]

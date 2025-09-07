@@ -1,0 +1,11 @@
+student_id,gender,age,previous_marks,attendance_percent,study_hours_per_week,parental_education,family_income,internet_access,extra_classes,assignment_score,passed
+S001,M,20,78,92,15,Graduate,45000,Yes,Yes,65,1
+S002,F,19,45,70,4,HighSchool,20000,No,No,35,0
+S003,F,21,66,85,10,Graduate,35000,Yes,Yes,70,1
+S004,M,20,32,50,2,Primary,15000,No,No,24,0
+S005,F,22,81,96,18,PostGrad,60000,Yes,Yes,75,1
+S006,M,21,55,75,8,HighSchool,25000,Yes,No,50,0
+S007,F,20,72,88,12,Graduate,40000,Yes,Yes,67,1
+S008,M,19,38,60,3,Primary,18000,No,No,35,0
+S009,F,22,90,98,20,PostGrad,65000,Yes,Yes,80,1
+S010,M,20,61,82,9,Graduate,32000,Yes,No,53,1

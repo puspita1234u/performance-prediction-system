@@ -1,30 +1,85 @@
 // Add/replace this in static/js/main.js
+// Predict an individual student's performance
 async function predictStudent(studentId) {
   try {
     const res = await fetch(`/students/${studentId}/predict`, { method: 'POST' });
     if (!res.ok) throw new Error('Prediction failed');
     const data = await res.json();
 
-    // Update prediction & probability cells if present
-    const predCell = document.getElementById(`pred-${studentId}`);
-    if (predCell) predCell.textContent = data.prediction || '';
-
-    const probCell = document.getElementById(`prob-${studentId}`);
-    if (probCell && typeof data.probability === 'number') {
-      probCell.textContent = (data.probability * 100).toFixed(1) + '%';
+    if (!data || (!data.prediction && typeof data.probability !== 'number')) {
+      throw new Error('Invalid prediction response');
     }
 
-    // Refresh the chart (global function defined in dashboard template)
+    // Update prediction cell
+    const predCell = document.getElementById(`pred-${studentId}`);
+    if (predCell) {
+      predCell.textContent = data.prediction || 'N/A';
+    }
+
+    // Update probability cell (always ensure it's in percentage format)
+    const probCell = document.getElementById(`prob-${studentId}`);
+    if (probCell) {
+      const prob = data.probability > 1 ? data.probability : data.probability * 100;
+      probCell.textContent = `${prob.toFixed(1)}%`;
+    }
+
+    // Refresh chart
     if (typeof window.loadStats === 'function') {
       window.loadStats();
     }
   } catch (e) {
-    console.error(e);
-    alert('Prediction failed');
+    console.error('Prediction failed for student', studentId, e);
+    alert('Prediction failed for student ID: ' + studentId);
   }
 }
 
 
+// Predict all students for the logged-in teacher (or admin if applicable)
+async function predictAll() {
+  try {
+    const res = await fetch('/students/predict_all', { method: 'POST' });
+    if (!res.ok) throw new Error('Predict All request failed');
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    const updatedCount = data.updated || 0;
+    if (updatedCount === 0) {
+      alert('No students were predicted. Either no students found or prediction failed.');
+      return;
+    }
+
+    alert(`${updatedCount} students predicted successfully.`);
+
+    // Update each row in the table
+    if (Array.isArray(data.students)) {
+      data.students.forEach(st => {
+        const predCell = document.getElementById(`pred-${st.id}`);
+        if (predCell) {
+          predCell.textContent = st.prediction || 'N/A';
+        }
+
+        const probCell = document.getElementById(`prob-${st.id}`);
+        if (probCell) {
+          const prob = st.probability > 1 ? st.probability : st.probability * 100;
+          probCell.textContent = `${prob.toFixed(1)}%`;
+        }
+      });
+    }
+
+    // Refresh chart after all updates
+    if (typeof window.loadStats === 'function') {
+      window.loadStats();
+    }
+  } catch (e) {
+    console.error('Predict All failed', e);
+    alert('Prediction failed.');
+  }
+}
 
 // Simple table sort/search/filter
 (function () {
