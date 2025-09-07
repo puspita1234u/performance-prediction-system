@@ -18,7 +18,9 @@
           <td>{{ t.id }}</td>
           <td>{{ t.name }}</td>
           <td>{{ t.email }}</td>
-          <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_view_students', teacher_id=t.id) }}">View Students</a></td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_view_students', teacher_id=t.id) }}">View Students</a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
