@@ -177,10 +177,28 @@ def dashboard():
         return require_teacher()
     tid = current_teacher_id()
     students = Student.query.filter_by(teacher_id=tid).order_by(Student.id.desc()).all()
-    # Provide data for chart
+
     chart_labels = [s.name for s in students]
     chart_marks = [s.previous_marks or 0 for s in students]
-    return render_template("dashboard.html", students=students, chart_labels=chart_labels, chart_marks=chart_marks)
+
+    # Compute summary
+    total = len(students)
+    passes = sum(1 for s in students if s.prediction == "Pass")
+    fails = sum(1 for s in students if s.prediction == "Fail")
+    avg_prob_pass = round(sum(s.probability for s in students if s.prediction == "Pass") / passes, 2) if passes else 0
+    avg_prob_fail = round(sum(s.probability for s in students if s.prediction == "Fail") / fails, 2) if fails else 0
+
+    return render_template(
+        "dashboard.html",
+        students=students,
+        chart_labels=chart_labels,
+        chart_marks=chart_marks,
+        total=total,
+        passes=passes,
+        fails=fails,
+        avg_prob_pass=avg_prob_pass,
+        avg_prob_fail=avg_prob_fail
+    )
 
 @app.route("/students/add_student", methods=["POST"])
 def add_student():
@@ -372,6 +390,24 @@ def predict_all():
 
     db.session.commit()
     return jsonify({"updated": count, "students": updated_students})
+
+@app.route("/students/<int:student_id>/delete", methods=["POST"])
+def delete_student(student_id):
+    if require_teacher():
+        return require_teacher()
+
+    s = Student.query.get_or_404(student_id)
+
+    # Ensure logged-in teacher owns the student
+    if s.teacher_id != current_teacher_id():
+        flash("Not authorized to delete this student.", "danger")
+        return redirect(url_for("dashboard"))
+
+    db.session.delete(s)
+    db.session.commit()
+    flash("Student deleted successfully.", "info")
+    return redirect(url_for("dashboard"))
+
 
 
 # --------- CLI helpers ---------
