@@ -9,6 +9,8 @@ from io import StringIO
 from flask import Response
 import csv
 from io import TextIOWrapper
+from werkzeug.security import generate_password_hash
+
 
 
 load_dotenv()
@@ -497,6 +499,31 @@ def admin_edit_teacher(teacher_id):
         return redirect(url_for("admin_dashboard"))
 
     return render_template("admin_edit_teacher.html", teacher=teacher)
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        teacher = Teacher.query.filter_by(email=email).first()
+
+        if not teacher:
+            flash("No account found with that email.", "danger")
+            return redirect(url_for("forgot_password"))
+
+        # For now: let teacher reset password directly
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        if new_password != confirm_password:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("forgot_password"))
+
+        teacher.password = generate_password_hash(new_password)
+        db.session.commit()
+        flash("Password reset successfully. You can now log in.", "success")
+        return redirect(url_for("login"))
+
+    return render_template("forgot_password.html")
 
 
 @app.route("/admin/teachers/<int:teacher_id>/delete", methods=["POST"])
