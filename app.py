@@ -5,6 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from joblib import load as joblib_load
+from io import StringIO
+from flask import Response
+import csv
+from io import TextIOWrapper
 
 
 load_dotenv()
@@ -511,6 +515,92 @@ def admin_delete_teacher(teacher_id):
     flash("Teacher and their students deleted successfully.", "info")
     return redirect(url_for("admin_dashboard"))
 
+
+@app.route("/students/import", methods=["GET", "POST"])
+def import_students():
+    if require_teacher():
+        return require_teacher()
+
+    tid = current_teacher_id()
+    if not tid:
+        flash("Unable to determine teacher. Please log in again.", "danger")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        file = request.files.get("file")
+        if not file or not file.filename.endswith(".csv"):
+            flash("Please upload a valid CSV file.", "danger")
+            return redirect(url_for("import_students"))
+
+        try:
+            stream = TextIOWrapper(file.stream, encoding="utf-8")
+            reader = csv.DictReader(stream)
+
+            count = 0
+            for row in reader:
+                name = row.get("name", "").strip()
+                if not name:
+                    continue
+
+                s = Student(
+                    teacher_id=tid,
+                    name=name,
+                    age=int(row["age"]) if row.get("age") else None,
+                    assignment_score=float(row["assignment_score"]) if row.get("assignment_score") else None,
+                    gender=row.get("gender"),
+                    previous_marks=int(row["previous_marks"]) if row.get("previous_marks") else None,
+                    attendance_percent=int(row["attendance_percent"]) if row.get("attendance_percent") else None,
+                    study_hours_per_week=int(row["study_hours_per_week"]) if row.get("study_hours_per_week") else None,
+                    parental_education=row.get("parental_education"),
+                    family_income=int(row["family_income"]) if row.get("family_income") else None,
+                    internet_access=row.get("internet_access"),
+                    extra_classes=row.get("extra_classes")
+                )
+                db.session.add(s)
+                count += 1
+
+            db.session.commit()
+            flash(f"{count} students imported successfully.", "success")
+            return redirect(url_for("teacher_students"))
+
+        except Exception as e:
+            flash(f"Error importing students: {str(e)}", "danger")
+            return redirect(url_for("import_students"))
+
+    return render_template("import_students.html")
+
+
+@app.route("/students/template")
+def download_csv_template():
+    if require_teacher():
+        return require_teacher()
+
+    # Define the column headers we expect
+    headers = [
+        "name",
+        "age",
+        "assignment_score",
+        "gender",
+        "previous_marks",
+        "attendance_percent",
+        "study_hours_per_week",
+        "parental_education",
+        "family_income",
+        "internet_access",
+        "extra_classes"
+    ]
+
+    # Generate CSV in memory
+    si = StringIO()
+    writer = csv.writer(si)
+    writer.writerow(headers)   # only headers in template
+
+    output = Response(
+        si.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=students_template.csv"}
+    )
+    return output
 
 
 # --------- CLI helpers ---------

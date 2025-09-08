@@ -1,0 +1,4 @@
+name,age,assignment_score,gender,previous_marks,attendance_percent,study_hours_per_week,parental_education,family_income,internet_access,extra_classes
+Ramesh,20,85,F,75,90,15,Graduate,50000,Yes,No
+Suresh,21,70,M,60,80,10,High School,30000,No,Yes
+Charlie,22,65,M,50,70,8,PostGrad,40000,Yes,No

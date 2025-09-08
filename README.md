@@ -20,7 +20,7 @@ Flask + MySQL web app for managing students by **Teachers**, predicting pass/fai
 
 1. **Clone & install**
 ```bash
-python -m venv venv
+python -3.11 -m venv venv
 # Windows
 source venv/Scripts/activate
 # Linux/Mac
